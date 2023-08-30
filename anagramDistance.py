@@ -2,8 +2,16 @@
 
 import string
 
-enlishWordsFile = 'words_alpha.txt'
+enlishWordsFile = 'wordleWords.txt'
 n = 5
+blist = []
+
+def blacklist(letter):
+    blist.append(letter)
+    
+def clearBlist():
+    blist.clear()
+
 def makeAnagramMap(wordFile, n):
     #first, find all enhish words of length 5
     words = set()
@@ -11,7 +19,7 @@ def makeAnagramMap(wordFile, n):
         lines = fin.read().splitlines()
         for s in lines:
             if len(s) == n:
-                words.add(s)
+                words.add(s.lower())
                 
                 
     #remove the ones with repreated letters
@@ -25,8 +33,6 @@ def makeAnagramMap(wordFile, n):
         if count != n:
             newWords.remove(s)
         
-        
-        
     #generate map of anagrams
     anagramMaps = dict()
     for s in newWords:
@@ -39,9 +45,9 @@ def makeAnagramMap(wordFile, n):
     return anagramMaps
         
 def findAnagramDistance(word, anagram):
-    wordFam = ''.join(word.sort())
-    anaFam = ''.join(word.sort())
-    return levenshteinDistance(wordFam, anaFam)
+    a, b, doable = stringDifference(word, anagram);
+    if not doable: return -1
+    return len(a)
     
 def stringDifference(a, b):
     delete, insert = [],[]
@@ -50,15 +56,17 @@ def stringDifference(a, b):
     for e in b: insert.append(e)
     
     for i in a:
-        if i in b:
-            insert.remove(i)
+        if i.lower() in b:
+            insert.remove(i.lower())
         else:
             delete.append(i)
             
     doable = True
-    for i in delete + insert:
-        if not i.islower():
+    for i in delete:
+        if not i.islower() or i in blist:
+            doable = False
+    for i in insert:
+        if i in blist:
             doable = False
     return (delete, insert, doable)
 
-print(stringDifference("abcde", "xcvbn"))
