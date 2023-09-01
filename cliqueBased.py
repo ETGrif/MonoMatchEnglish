@@ -36,10 +36,11 @@ class Node:
                 
 
 verbose = False
+outFile = "longestSet.txt"
         
 def main():
     
-    nodes = createNodes("wordleWords.txt")
+    nodes = createNodes("wordleWordsSmall.txt")
     print("Completed graph import")
     
     #create the initial state stack
@@ -84,11 +85,13 @@ def main():
             if(len(maxClique) < len(curClique)): 
                 maxClique = curClique.copy()
                 print(f'Max EMS found: {maxClique}')
-                with open("longestSet.txt", "w") as out:
-                    for i in maxClique:
-                        out.write(i.name+"\n")
-            elif(len(maxClique) < len(curClique)):
-                print(f'Equiv EMS found: {maxClique}')
+                with open(outFile, "w") as out:
+                    out.write(len(maxClique))
+                    out.write(str(maxClique))
+            elif(len(maxClique) == len(curClique)):
+                print(f'Equiv EMS found: {curClique}')
+                with open(outFile, "a") as out:
+                    out.write("\n" + str(curClique))
             curClique.remove(n)
         
         
