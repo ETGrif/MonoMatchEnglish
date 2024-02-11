@@ -1,4 +1,7 @@
 import time
+import datetime
+import os
+
 
 
 class Node:
@@ -37,6 +40,7 @@ class Node:
 
 verbose = False
 outFile = "longestSet.txt"
+crashProtectionFile = "crashProtection.txt"
         
 def main():
     
@@ -47,20 +51,60 @@ def main():
     maxClique = set()
     stateStack = []
     maxValStack = []
+    foundSets = []
+    newMaxFound = False
+    prevSeed = ""
     totalCounted = 0
     totalSeeds = 0
+    
     for node in nodes:
         newSet = set()
         newSet.add(node)
         stateStack.append(newSet)
         maxValStack.append(node.name)
         
+    if os.path.exists(crashProtectionFile):
+        #This is a crash recovery runthrough
+        #remove previous seeds from the state stack (except the last one in the list)
+        with open(crashProtectionFile, "r") as cpIn:
+            lines = cpIn.read().splitlines()
+            del lines[0]
+            for n in stateStack:
+                if list(n)[0].name in lines:
+                    stateStack.remove(n)
+                    maxValStack.remove(list(n)[0].name)
+        
+        with open(crashProtectionFile, "a") as cpOut:
+            cpOut.write(f"Session recovered at {datetime.datetime.now().isoformat()}\n")
+            
+        #recover a set to compare against for writing to the files
+        with open(outFile, "r") as ofIn:
+            line = ofIn.read().splitlines()
+            maxClique = set(line[1][1:-1].split(", "))
+        
+        
+    else:
+        with open(crashProtectionFile, "x") as cpOut:
+            cpOut.write(f"Session started at {datetime.datetime.now().isoformat()}\n")
+
+        
     while(len(stateStack) > 0):
         #make one pass in the state stack
         curClique = stateStack.pop()
         curCliqueMaxVal = maxValStack.pop()
         if len(curClique) == 1:
-            print("Starting from new seed")
+            print(f"Starting from new seed {list(curClique)[0].name}")
+            #write the previous completed seed to the crash protection file
+            with open(crashProtectionFile, "a") as cpOut:
+                if prevSeed != "":
+                    cpOut.write(prevSeed + "\n")
+                prevSeed = list(curClique)[0].name
+            
+            #TODO: write the previous words
+            writeSetsToOutFile(foundSets, newMaxFound)
+            foundSets.clear()
+            newMaxFound = False
+                
             totalSeeds += 1
         totalCounted += 1
         
@@ -76,27 +120,28 @@ def main():
         
         #push the next possible clique steps
         for n in comNeighborhood:
-            if n.name < curCliqueMaxVal: continue
-            #TODO: This is where an ordering would need to be implemented.. Not sure how to do that yet
+            if n.name < curCliqueMaxVal: continue #This line enforces a weak ordering
             curClique.add(n)
             stateStack.append(curClique.copy())
             maxValStack.append(n.name)
             #here we will also update the max if necessary
             if(len(maxClique) < len(curClique)): 
-                maxClique = curClique.copy()
                 print(f'Max EMS found: {maxClique}')
-                with open(outFile, "w") as out:
-                    out.write(len(maxClique))
-                    out.write(str(maxClique))
+                maxClique = curClique.copy()
+                foundSets.clear()
+                foundSets.append(maxClique.copy())
+                newMaxFound = True
             elif(len(maxClique) == len(curClique)):
-                print(f'Equiv EMS found: {curClique}')
-                with open(outFile, "a") as out:
-                    out.write("\n" + str(curClique))
+                if(verbose):
+                    print(f'Equiv EMS found: {curClique}')
+                foundSets.append(curClique.copy())
             curClique.remove(n)
         
         
     print(maxClique)
-        
+    
+    #close the crash recovery file
+    # os.remove(crashProtectionFile)
     
 def createNodes(file):
     nodes = set()
@@ -118,7 +163,13 @@ def createNodes(file):
                 nodes.add(newNode)
     return nodes
 
-
+def writeSetsToOutFile(cliques, newMax):
+    type = "w" if newMax else "a"
+    with open(outFile, type) as out:
+        if newMax:
+            out.write(str(len(list(cliques)[0])))
+        for clique in cliques:
+            out.write("\n" + str(clique))
 
 start = time.time()   
 main()
