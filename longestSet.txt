@@ -1,0 +1,10 @@
+10
+{'lefty', 'bicep', 'unwed', 'gulch', 'bayou', 'prowl', 'ingot', 'graze', 'valid', 'shove'}
+{'mange', 'crump', 'clash', 'dimly', 'skier', 'gusty', 'tonic', 'flunk', 'draft', 'growl'}
+{'taker', 'month', 'spunk', 'salvo', 'given', 'aphid', 'epoxy', 'curio', 'fancy', 'milky'}
+{'found', 'wince', 'spoke', 'quirk', 'axiom', 'flack', 'heard', 'chump', 'exult', 'shift'}
+{'clank', 'foamy', 'porch', 'slump', 'vowel', 'filth', 'vapid', 'miner', 'straw', 'donut'}
+{'yield', 'faith', 'pause', 'vocal', 'forge', 'gawky', 'brand', 'wench', 'stony', 'flunk'}
+{'chief', 'atone', 'could', 'dwarf', 'showy', 'funky', 'surge', 'smack', 'crypt', 'gaily'}
+{'women', 'sport', 'rehab', 'lymph', 'aping', 'cloak', 'blunt', 'dough', 'slide', 'witch'}
+{'havoc', 'tumor', 'gaudy', 'eight', 'plant', 'blush', 'lyric', 'nosey', 'swami', 'baker'}

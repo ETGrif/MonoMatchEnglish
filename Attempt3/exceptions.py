@@ -1,0 +1,2 @@
+class OverrestrictedError (Exception):
+    pass

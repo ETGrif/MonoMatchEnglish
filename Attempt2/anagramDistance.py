@@ -2,7 +2,7 @@
 
 import string
 
-enlishWordsFile = 'Attempt 1\wordleWords.txt'
+englishWordsFile = 'wordleWords.txt'
 n = 5
 blist = []
 
@@ -12,10 +12,10 @@ def blacklist(letter):
 def clearBlist():
     blist.clear()
 
-def makeAnagramMap(wordFile, n):
+def makeAnagramMap(n=n, wordFile=englishWordsFile):
     #first, find all enhish words of length 5
     words = set()
-    with open(enlishWordsFile) as fin:
+    with open(wordFile) as fin:
         lines = fin.read().splitlines()
         for s in lines:
             if len(s) == n:
@@ -44,29 +44,43 @@ def makeAnagramMap(wordFile, n):
     
     return anagramMaps
         
-def findAnagramDistance(word, anagram):
-    a, b, doable = stringDifference(word, anagram);
-    if not doable: return -1
-    return len(a)
+# def findAnagramDistance(word, anagram):
+#     a, b, doable = stringDifference(word, anagram);
+#     if not doable: return -1
+#     return len(a)
     
-def stringDifference(a, b):
+# def stringDifference(a, b):
+#     delete, insert = [],[]
+#     a = list(a)
+#     b = list(b)
+#     for e in b: insert.append(e)
+    
+#     for i in a:
+#         if i.lower() in b:
+#             insert.remove(i.lower())
+#         else:
+#             delete.append(i)
+    
+#     doable = True
+#     for i in delete:
+#         if not i.islower() or i in blist:
+#             doable = False
+#     for i in insert:
+#         if i in blist:
+#             doable = False
+#     return (delete, insert, doable)
+
+def isMonoMatch(a, b):
     delete, insert = [],[]
     a = list(a)
     b = list(b)
-    for e in b: insert.append(e)
-    
+    # for e in b: insert.append(e)
+    insert.extend(b)
     for i in a:
         if i.lower() in b:
             insert.remove(i.lower())
         else:
             delete.append(i)
             
-    doable = True
-    for i in delete:
-        if not i.islower() or i in blist:
-            doable = False
-    for i in insert:
-        if i in blist:
-            doable = False
-    return (delete, insert, doable)
-
+    return len(insert) == 4 and len(delete)==4
+    
