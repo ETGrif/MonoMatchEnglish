@@ -1,6 +1,7 @@
 import anagramMap as am
 import monoStructure as ms
 import random as rand
+import multiprocessing
 from exceptions import OverrestrictedError
 
 anagramMap = am.make_anagram_map("Attempt3\wordleWords.txt")
@@ -70,37 +71,114 @@ def find_mono_match():
 
     #TODO technically we can look for all possible monomatch sets using this set of anagrams.
     monomatchset = set()
+    discardCount = 0
     for letters in mono.restricted:
         family = ''.join(sorted(letters))
         if family in anagramMap.keys(): 
             #some extra restrictions will be created by fully restricting other words, but might not have a family associated with it
             word = rand.choice(anagramMap[family])
             monomatchset.add(word)
-        
-    return monomatchset
-
-
-#repeatedly search for monomatches, saving the largest
-largestSet = set()
-while(True):
-    try:
-        found = find_mono_match()
-        if(len(found) > len(largestSet)):
-            print(f"New largest EMS found! {len(found)}")
-            largestSet = found
-            print(found)
-            
-            with open("longestSet.txt", "w") as out:
-                # for i in largestSet:
-                #     out.write(i+"\n")
-                out.write(str(len(found)) + "\n" + str(found)+"\n")
-        elif len(found) == len(largestSet):
-            print(f'found {len(found)}: (Additional)')
-            
-            with open("longestSet.txt", "a") as out:
-                out.write(str(found)+"\n")
         else:
-            print(f'found {len(found)}')
-    except OverrestrictedError as e:
-        print(f"The Bug happened...  [{e.args[1]}]")
-        # print(e.args[0])
+            discardCount += 1
+        
+    return monomatchset, discardCount
+
+
+def run_search(globalMax, lock, endCond, i):
+    #repeatedly search for monomatches, saving the largest
+    localMax = 0
+    
+    while(True):
+        #check the end condition
+        if bool(endCond.value):
+            exit()
+        
+        try:
+            found, discard = find_mono_match()
+            
+            if(len(found) > localMax):
+                #verify check global max
+                lock.acquire() #lock that shit down
+                if len(found) > globalMax.value: #we are higher than the Global max
+                                
+                    print(f"New largest EMS found! {len(found)} ["+str(i)+"]")
+                    globalMax.value = len(found)
+                    localMax = globalMax.value
+                    print(found)
+                    
+                    with open("longestSet.txt", "w") as out:
+                        # for i in largestSet:
+                        #     out.write(i+"\n")
+                        out.write(str(len(found)) + "\n" + str(found)+ " ["+str(discard)+"] \n")
+                else:
+                    #the new found set was larger than the local, but not the global max
+                    localMax = globalMax.value
+                
+                lock.release() #release the global Max
+                
+            elif len(found) == localMax:
+                lock.acquire() #CRITICAL SECTION LOCK
+                
+                if localMax == globalMax.value:
+                    print(f'found {len(found)}: (Additional) ['+str(i)+']')
+                    
+                    
+                    with open("longestSet.txt", "a") as out:
+                        out.write(str(found)+" ["+str(discard)+"]\n")
+                else:
+                    #the local max isnt aligned with the global
+                    localMax = globalMax.value
+                        
+                lock.release() #CRITICAL SECTION RELEASE
+    
+            else:
+                # print(f'found {len(found)}')
+                pass
+        except OverrestrictedError as e:
+            print(f"The Bug happened...  [{e.args[1]}]")
+            print(e.args[0])
+            exit()
+            # print(e.args[0])
+        
+if __name__ == "__main__":
+    
+    processeses = []
+    
+    #global max semaphore
+    globalMax = multiprocessing.Value("i")
+    globalMax.value = 0
+    
+    #lock
+    lock = multiprocessing.Lock()
+    
+    #end condition
+    endCond = multiprocessing.Value("i")
+    endCond.value = 0
+    
+    #build processes
+    for i in range(multiprocessing.cpu_count()):
+                
+        #build process
+        processeses.append(multiprocessing.Process(target = run_search, args = (globalMax, lock, endCond, i)))
+        
+        #launch process
+        processeses[i].start()
+        print(f"Process {i} started.")
+    
+    
+    #wait time
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        pass
+        
+    
+    endCond.value = 1 #trigger end condition in children processes
+    #wait for processes
+    for i, p in enumerate(processeses):
+        p.join()
+        print(f"Process {i} finished.")
+        
+    
+    print("All processes Finished")
