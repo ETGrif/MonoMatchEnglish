@@ -1,10 +1,13 @@
+import multiprocessing.spawn
 import anagramMap as am
 import monoStructure as ms
 import random as rand
 import multiprocessing
 from exceptions import OverrestrictedError
+import os
 
 anagramMap = am.make_anagram_map("Attempt3\wordleWords.txt")
+debug = True
 
 def find_mono_match():
     mono = ms.MonoStruct()
@@ -156,7 +159,8 @@ if __name__ == "__main__":
     endCond.value = 0
     
     #build processes
-    for i in range(multiprocessing.cpu_count()):
+    num_jobs = multiprocessing.cpu_count() if not debug else 1
+    for i in range(num_jobs):
                 
         #build process
         processeses.append(multiprocessing.Process(target = run_search, args = (globalMax, lock, endCond, i)))
