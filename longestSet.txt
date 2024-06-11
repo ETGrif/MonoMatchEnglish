@@ -1,3 +1,7 @@
-9
-{'chair', 'motif', 'aunty', 'serum', 'shown', 'eking', 'adobe', 'glory', 'flask'} [7] 
-{'slang', 'wench', 'brush', 'faith', 'bawdy', 'lyric', 'maker', 'frond', 'guide'} [7]
+12
+{'graph', 'bushy', 'judge', 'opium', 'hotel', 'staid', 'fibre', 'banjo', 'trunk', 'wordy', 'lying', 'awful'} [9] 
+{'honey', 'gamer', 'brink', 'fluke', 'audio', 'slimy', 'twice', 'curvy', 'swung', 'thumb', 'shack', 'frost'} [9]
+{'forty', 'stand', 'scrum', 'weird', 'exult', 'ralph', 'thick', 'dough', 'spoke', 'clown', 'axiom', 'hymen'} [9]
+{'cameo', 'dimly', 'quick', 'bused', 'weigh', 'young', 'shaky', 'thrum', 'brain', 'awful', 'knelt', 'foist'} [9]
+{'axiom', 'wider', 'scrum', 'clown', 'thick', 'ralph', 'spoke', 'hymen', 'stand', 'dough', 'forty', 'exult'} [9]
+{'eight', 'shorn', 'blend', 'tawny', 'cumin', 'pause', 'lymph', 'dogma', 'flout', 'covey', 'rugby', 'viral'} [9]

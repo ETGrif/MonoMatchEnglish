@@ -7,67 +7,72 @@ from exceptions import OverrestrictedError
 import os
 
 anagramMap = am.make_anagram_map("Attempt3\wordleWords.txt")
-debug = True
+debug = False
 
 def find_mono_match():
     mono = ms.MonoStruct()
 
+
     while True:
-        # find most restrictive monomatch
-        restrictions = [[] for i in mono.loose]
-        for i in range(len(restrictions)):
-            m = mono.loose[i][0] #actually grab the mono
-            for f in anagramMap.keys():
-                #check if the word works, and then add to the lists
-                if not mono.word_is_restricted(f,m):
-                    restrictions[i].append(f)
-
-
-        #pick the mono with most restrictions
-        minInds = []
-        minLen = 100000
-        for i in range(len(restrictions)):
-            if len(restrictions[i]) < minLen and len(restrictions[i]) > 0:
-                minInds = [i]
-                minLen = len(restrictions[i])
-            elif len(restrictions[i]) == minLen:
-                minInds.append(i)
+        monoAvail = [] #set of letters availble to restrict to for each mono
+        
+        #find the letters available to each mono
+        for i, m in enumerate(mono.loose):
+            monoAvail.append(set())
+            for w in anagramMap.keys():
+                #for each word and mono pair, check if word is possible
     
+                if not mono.word_is_restricted(w, m[0]):
+                #word is possible. Find the letters that work
+                    for l in w:
+                        #dont consider if::
+                        #the letter is in the tightened alphabet
+                        if l not in mono.tightenedAlph:
+                            monoAvail[i].update(l) #adds each letter possible 
 
-        #if this results in no possible restrictions for the current state of mono, then the loop ends
-        if minInds == []:
+        #count the outcomes possible for each var char pair:
+        # pairs[var][int(char)]
+        pairs = [[0 for i in range(len(mono.looseAlph))] for j in range(21)]
+        
+        for i, m in enumerate(mono.loose):
+            #find the loose vars
+            looseVars = []
+            for l in m[0]:
+                if l not in mono.tightenedAlph:
+                    looseVars.append(l)
+                    
+            #for each loose var, update that row of pairs
+            for v in looseVars:
+                v = int(v) -1#so it can be used for an index
+                for l in monoAvail[i]:
+                    #find the index of the character
+                    lInd = mono.looseAlph.index(l)
+                    pairs[v][lInd] += 1
+
+        
+        #sort into buckets
+        pairsWithCount = [[] for i in range(6)]
+        for v in range(21):
+            for l in range(len(mono.looseAlph)):
+                count = pairs[v][l]
+                pairsWithCount[count].append((v+1, mono.looseAlph[l]))
+        
+
+        #pick the list of pairs of highest count
+        maxInd = 5
+        while len(pairsWithCount[maxInd])==0:
+            maxInd -=1
+         
+        # END CONDITION
+        if maxInd == 0:
             break
+         
+        #pick a random pair from this list
+        (v, l) = rand.choice(pairsWithCount[maxInd])
         
-        p=.10
-        # minInds = rand.choices([minInds, list(range(len(restrictions)))], [p, 1-p])[0]
+        #restrict it
+        mono.restrict(v, l)
         
-        #with probability p, chose any other viable mono to restrict
-        if rand.choices([True, False], [p, 1-p]):
-            minInds = [i for i, x in enumerate(restrictions) if len(x)>0]
-        
-        minInd = rand.choice(minInds) #if there are equally restricted
-        
-        
-                
-        
-        # pick a possible match at random to restrict to
-        word = rand.choice(restrictions[minInd])
-        #find the loose letters, and shuffle them
-        looseLetters = []
-        for w in word:
-            if w in mono.looseAlph:
-                looseLetters.append(w)
-        rand.shuffle(looseLetters)
-
-        #find the loose variables
-        looseVars = []
-        for m in mono.loose[minInd][0]:
-            if m not in mono.tightenedAlph:
-                looseVars.append(m)
-
-        #restrict them
-        for v, l in zip(looseVars, looseLetters):
-            mono.restrict(v,l)
             
             
     #from here on, we have a known, valid monomatch set, but need to solve for anagrams
@@ -112,7 +117,7 @@ def run_search(globalMax, lock, endCond, i):
                     with open("longestSet.txt", "w") as out:
                         # for i in largestSet:
                         #     out.write(i+"\n")
-                        out.write(str(len(found)) + "\n" + str(found)+ " ["+str(discard)+"] \n")
+                        out.write(str(len(found)) + "\n" + str(found)+ " ["+str(discard)+"]\n")
                 else:
                     #the new found set was larger than the local, but not the global max
                     localMax = globalMax.value
